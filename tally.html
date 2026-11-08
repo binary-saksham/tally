@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#111111">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tally</title>
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--bg:#111;--card:#1c1c1e;--line:#2c2c2e;--tx:#f2f2f7;--dim:#8e8e93;--ac:#30d158;--red:#ff453a}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+body{display:flex;flex-direction:column}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 14px}
+.bar b{font-size:20px;letter-spacing:-.5px}.bar b span{color:var(--ac)}
+.rs{background:none;color:var(--dim);font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:10px}
+.sc{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+th,td{border-bottom:1px solid var(--line);text-align:center;padding:0}
+th:first-child,td:first-child{width:54px}
+thead th{position:sticky;top:0;z-index:2;background:var(--card);padding:10px 4px;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tfoot td{position:sticky;bottom:0;z-index:2;background:var(--card);padding:14px 4px;font-size:22px;font-weight:800;border-top:2px solid var(--line);border-bottom:0}
+#add{width:40px;height:40px;border-radius:50%;background:var(--ac);color:#04210d;font-size:26px;font-weight:700;line-height:1}
+.n{color:var(--dim);font-size:13px}
+.c{width:100%;padding:16px 4px;background:none;border:0;color:var(--tx);font:inherit;font-size:22px;text-align:center;outline:0;border-radius:0}
+.c.neg{color:var(--red)}
+.c:read-only{opacity:.55}
+tr.act td{background:#16241b}
+tr.act .c:focus{background:#1d3226}
+.lead{color:var(--ac)}
+</style></head><body>
+<div class="bar"><b>Tal<span>ly</span></b><button class="rs" id="rs">Reset game</button></div>
+<div class="sc"><table><thead><tr id="hd"></tr></thead><tbody id="bd"></tbody><tfoot><tr id="ft"></tr></tfoot></table></div>
+<script>
+const K='tally_game';let names=[],rows=[];
+const save=()=>{try{localStorage.setItem(K,names.join('|')+'\n'+rows.map(r=>r.join(',')).join('\n'))}catch(e){}};
+(()=>{try{const t=localStorage.getItem(K);if(t){const L=t.split('\n');names=L[0].split('|').filter(Boolean);
+rows=L.slice(1).map(l=>{const v=l.split(',');while(v.length<names.length)v.push('');return v.slice(0,names.length)})}}catch(e){}
+if(!names.length){location.replace('index.html');return}
+if(!rows.length)rows.push(names.map(()=>''))})();
+const ft=document.getElementById('ft'),hd=document.getElementById('hd'),bd=document.getElementById('bd');
+function totals(){
+ const T=names.map((_,c)=>rows.slice(0,-1).reduce((s,r)=>s+(parseInt(r[c])||0),0));
+ const m=Math.max(...T),has=rows.length>1&&m>0;
+ [...hd.children].slice(1).forEach((h,c)=>h.textContent=names[c]+(has&&T[c]===m?' 👑':''));
+ [...ft.children].slice(1).forEach((f,c)=>{f.textContent=T[c];f.className=has&&T[c]===m?'lead':''})}
+function build(){
+ hd.innerHTML='<th><button id="add">+</button></th>'+names.map(n=>'<th></th>').join('');
+ ft.innerHTML='<td class="n">Σ</td>'+names.map(()=>'<td></td>').join('');
+ bd.innerHTML='';
+ rows.forEach((r,ri)=>{const last=ri===rows.length-1,tr=document.createElement('tr');if(last)tr.className='act';
+  tr.innerHTML='<td class="n">'+(ri+1)+'</td>';
+  r.forEach((v,ci)=>{const td=document.createElement('td'),i=document.createElement('input');
+   i.className='c'+(v[0]==='-'?' neg':'');i.value=v;i.inputMode='numeric';i.autocomplete='off';i.readOnly=!last;
+   if(last){
+    const set=x=>{r[ci]=x;i.value=x;i.classList.toggle('neg',x[0]==='-');save();totals()};
+    i.oninput=()=>{const d=i.value.replace(/\D/g,'').slice(0,6);set(d?(i.value.includes('-')?'-':'')+d:'')};
+    let lt=0;i.addEventListener('pointerup',()=>{const n=Date.now();
+     if(n-lt<320&&r[ci]){set(r[ci][0]==='-'?r[ci].slice(1):'-'+r[ci]);lt=0}else lt=n})}
+   td.appendChild(i);tr.appendChild(td)});
+  bd.appendChild(tr)});
+ document.getElementById('add').onclick=()=>{rows.push(names.map(()=>''));save();build();
+  const s=document.querySelector('.sc');s.scrollTop=s.scrollHeight;bd.lastChild.querySelector('input').focus()};
+ totals()}
+document.getElementById('rs').onclick=()=>{if(confirm('Delete this game and its save?')){
+ try{localStorage.removeItem(K)}catch(e){}location.href='index.html'}};
+build();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script></body></html>
