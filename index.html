@@ -38,6 +38,13 @@ input:focus{border-color:var(--ac)}
 <button class="b co" id="co" hidden>Continue saved game<small id="cn"></small></button>
 </div>
 <script>
+if(!matchMedia('(display-mode: standalone)').matches){
+  document.addEventListener('pointerup',()=>{
+    const d=document.documentElement;
+    if(!document.fullscreenElement&&d.requestFullscreen)
+      d.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
+  });
+}
 const K='tally_game',ins=[...document.querySelectorAll('input')];
 try{const t=localStorage.getItem(K);if(t){const n=t.split('\n')[0].split('|').filter(Boolean);
 if(n.length){co.hidden=false;cn.textContent=n.join(' · ');ins.forEach((e,i)=>e.value=n[i]||'')}}}catch(e){}
