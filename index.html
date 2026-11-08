@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#111111">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tally</title>
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--bg:#111;--card:#1c1c1e;--line:#2c2c2e;--tx:#f2f2f7;--dim:#8e8e93;--ac:#30d158;--red:#ff453a}
+html{height:100%}
+html,body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+body{display:flex;min-height:100vh;min-height:100dvh;overflow-y:auto}
+.w{width:min(92vw,380px);margin:auto;padding:20px 0;display:flex;flex-direction:column;gap:12px}
+#co{order:-1}h1{order:-2}
+h1{font-size:34px;letter-spacing:-1px;margin-bottom:4px}
+h1 span{color:var(--ac)}
+p{color:var(--dim);font-size:14px;margin-bottom:6px}
+input{width:100%;padding:15px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:inherit;font-size:17px;outline:0;-webkit-user-select:text;user-select:text}
+input:focus{border-color:var(--ac)}
+.b{padding:16px;border-radius:14px;font-weight:700;font-size:17px}
+.go{background:var(--ac);color:#04210d}
+.co{background:var(--card);border:1px solid var(--line)}
+.co small{display:block;color:var(--dim);font-weight:400;font-size:13px;margin-top:2px}
+.sh{animation:s .3s}@keyframes s{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+</style></head><body>
+<div class="w">
+<h1>Tal<span>ly</span></h1>
+<p>Enter 1 to 4 players</p>
+<input placeholder="Player 1" maxlength="12"><input placeholder="Player 2" maxlength="12">
+<input placeholder="Player 3" maxlength="12"><input placeholder="Player 4" maxlength="12">
+<button class="b go" id="go">Start new game</button>
+<button class="b co" id="co" hidden>Continue saved game<small id="cn"></small></button>
+</div>
+<script>
+const K='tally_game',ins=[...document.querySelectorAll('input')];
+try{const t=localStorage.getItem(K);if(t){const n=t.split('\n')[0].split('|').filter(Boolean);
+if(n.length){co.hidden=false;cn.textContent=n.join(' · ');ins.forEach((e,i)=>e.value=n[i]||'')}}}catch(e){}
+co.onclick=()=>location.href='tally.html';
+go.onclick=()=>{const n=ins.map(i=>i.value.replace(/[|,\n]/g,'').trim()).filter(Boolean);
+if(!n.length){go.classList.remove('sh');void go.offsetWidth;go.classList.add('sh');ins[0].focus();return}
+try{localStorage.setItem(K,n.join('|')+'\n'+n.map(()=>'').join(','))}catch(e){}
+location.href='tally.html'};
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script></body></html>
