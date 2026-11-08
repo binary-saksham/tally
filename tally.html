@@ -36,6 +36,13 @@ tr.act .c:focus{background:#1d3226}
 <div class="bar"><b>Tal<span>ly</span></b><button class="rs" id="rs">Reset game</button></div>
 <div class="sc"><table><thead><tr id="hd"></tr></thead><tbody id="bd"></tbody><tfoot><tr id="ft"></tr></tfoot></table></div>
 <script>
+if(!matchMedia('(display-mode: standalone)').matches){
+  document.addEventListener('pointerup',()=>{
+    const d=document.documentElement;
+    if(!document.fullscreenElement&&d.requestFullscreen)
+      d.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
+  });
+}
 const K='tally_game';let names=[],rows=[];
 const save=()=>{try{localStorage.setItem(K,names.join('|')+'\n'+rows.map(r=>r.join(',')).join('\n'))}catch(e){}};
 (()=>{try{const t=localStorage.getItem(K);if(t){const L=t.split('\n');names=L[0].split('|').filter(Boolean);
